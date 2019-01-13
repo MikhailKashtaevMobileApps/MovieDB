@@ -8,53 +8,66 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.movieservice.MovieService;
 import com.example.movieservice.MovieServiceAIDL;
+import com.example.movieservice.model.Movie;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import io.reactivex.SingleObserver;
+import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity {
 
-    MovieServiceAIDL movieService;
-    Boolean connected = false;
     public static final String TAG = "__TAG__";
+
+    private EditText etQuery;
+    private MainPresenter presenter;
+    private RecyclerView rvMovieList;
+    private MovieAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent intent = new Intent(this, MovieService.class);
-        intent.setAction( MovieServiceAIDL.class.getName() );
-        bindService( intent, mConnection, Context.BIND_AUTO_CREATE );
+        etQuery = findViewById( R.id.query );
+        presenter = MainPresenter.getInstance(this);
+        rvMovieList = findViewById( R.id.rvMovieList );
+        adapter = new MovieAdapter(new ArrayList<Movie>());
+        rvMovieList.setAdapter(adapter);
+        rvMovieList.setLayoutManager(new LinearLayoutManager(this));
+
     }
 
-    private ServiceConnection mConnection = new ServiceConnection() {
-        // Called when the connection with the service is established
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            Log.d(TAG, "onServiceConnected: ");
-            // Following the example above for an AIDL interface,
-            // this gets an instance of the IRemoteInterface, which we can use to call on the service
-            movieService = MovieServiceAIDL.Stub.asInterface(service);
-            connected = true;
-        }
+    public void search(View view) {
+        presenter.search(etQuery.getText().toString(),
+                1)
+        .subscribe(new SingleObserver<List<Movie>>() {
+            @Override
+            public void onSubscribe(Disposable d) {
 
-        // Called when the connection with the service disconnects unexpectedly
-        public void onServiceDisconnected(ComponentName className) {
-            Log.d(TAG, "onServiceDisconnected: ");
-            movieService = null;
-            connected = false;
-        }
-    };
-
-    public void ping(View view) {
-        if (connected){
-            try {
-                Log.d(TAG, "onCreate: "+movieService.ping());
-            } catch (RemoteException e) {
-                e.printStackTrace();
             }
-        }
+
+            @Override
+            public void onSuccess(List<Movie> movies) {
+                // Populate movies
+                Log.d(TAG, "onSuccess: "+movies.size());
+                adapter.setMovies( movies );
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

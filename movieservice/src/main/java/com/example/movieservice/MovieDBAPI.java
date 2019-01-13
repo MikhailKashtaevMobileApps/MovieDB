@@ -5,13 +5,15 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.RequestFuture;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.example.movieservice.model.MovieResult;
-import com.example.movieservice.model.Result;
+import com.example.movieservice.model.Movie;
 import com.google.gson.Gson;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 
 public class MovieDBAPI {
@@ -24,31 +26,16 @@ public class MovieDBAPI {
         this.context = context;
     }
 
-    public void search(String query, Integer pageNum, final Callback callback){
-        RequestQueue queue = Volley.newRequestQueue(context);
-
+    public List<Movie> search(String query, Integer pageNum) throws ExecutionException, InterruptedException {
+        RequestFuture<String> future = RequestFuture.newFuture();
         String url = URL+"?api_key="+API_KEY+"&language=en-US&query="+query+"&page="+pageNum+"";
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, future, future);
+        RequestQueue queue = Volley.newRequestQueue(context);
+        queue.add( stringRequest );
 
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        MovieResult result = new Gson().fromJson( response, MovieResult.class );
-                        callback.onSuccess(result.getResults());
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        callback.onError(error.getMessage());
-                    }
-                }
-        );
-        queue.add(stringRequest);
-    }
-
-    public interface Callback{
-        void onSuccess(List<Result> movies);
-        void onError(String error);
+        String response = future.get();
+        MovieResult result = new Gson().fromJson( response, MovieResult.class );
+        return result.getResults();
     }
 
 }

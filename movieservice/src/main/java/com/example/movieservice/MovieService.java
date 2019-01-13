@@ -6,8 +6,17 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 
+import com.example.movieservice.model.MovieResult;
+
+import java.io.Serializable;
+import java.util.concurrent.CompletableFuture;
+
 public class MovieService extends Service {
+
+    MovieDBAPI api;
+
     public MovieService() {
+        api = new MovieDBAPI(this);
     }
 
     @Override
@@ -24,7 +33,14 @@ public class MovieService extends Service {
         @Override
         public Bundle search(String aQuery, int pageNum) throws RemoteException {
             Bundle ret = new Bundle();
-            return ret;
+
+            try {
+                ret.putSerializable("data", (Serializable) api.search(aQuery, pageNum));
+                return ret;
+            }catch (Exception e){
+                System.out.println("__TAG__ "+e.getMessage());
+                return ret;
+            }
         }
     };
 
