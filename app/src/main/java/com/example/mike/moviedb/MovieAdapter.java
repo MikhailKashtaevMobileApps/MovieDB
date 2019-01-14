@@ -1,5 +1,6 @@
 package com.example.mike.moviedb;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -10,10 +11,11 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.example.movieservice.model.Movie;
+import com.example.movieservice.model.movie_detail.MovieDetail;
 
 import java.util.List;
 
-public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
+public abstract class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
 
     private List<Movie> movies;
 
@@ -26,6 +28,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         notifyDataSetChanged();
     }
 
+    public List<Movie> getMovies(){
+        return this.movies;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
@@ -34,7 +40,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
+    public void onBindViewHolder(@NonNull final ViewHolder viewHolder, int i) {
         Movie m = movies.get(i);
 
         viewHolder.originalTitle.setText(m.getOriginalTitle());
@@ -45,6 +51,22 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
         Glide.with(viewHolder.itemView)
                 .load("https://image.tmdb.org/t/p/w500"+m.getPosterPath())
                 .into(viewHolder.poster);
+
+        final Integer ID = m.getId();
+
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(viewHolder.itemView.getContext(), MovieDetailActivity.class);
+                intent.putExtra("data", ID);
+                viewHolder.itemView.getContext().startActivity(intent);
+            }
+        });
+
+        if ( i == movies.size()-1 ){
+            onLastLoaded();
+        }
+
     }
 
     @Override
@@ -68,7 +90,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
             release_date = itemView.findViewById(R.id.release_date);
             vote_average = itemView.findViewById(R.id.vote_average);
             poster = itemView.findViewById(R.id.poster);
+
         }
     }
+
+    public abstract void onLastLoaded();
 
 }

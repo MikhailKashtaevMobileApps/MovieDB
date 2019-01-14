@@ -10,6 +10,7 @@ import com.example.movieservice.model.MovieResult;
 
 import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class MovieService extends Service {
 
@@ -38,6 +39,18 @@ public class MovieService extends Service {
                 ret.putSerializable("data", (Serializable) api.search(aQuery, pageNum));
                 return ret;
             }catch (Exception e){
+                System.out.println("__TAG__ "+e.getMessage());
+                return ret;
+            }
+        }
+
+        @Override
+        public Bundle movie(int movieID) throws RemoteException {
+            Bundle ret = new Bundle();
+            try {
+                ret.putSerializable( "data", api.movie(movieID) );
+                return ret;
+            } catch (Exception e) {
                 System.out.println("__TAG__ "+e.getMessage());
                 return ret;
             }

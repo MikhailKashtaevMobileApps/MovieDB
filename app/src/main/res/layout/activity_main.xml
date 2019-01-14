@@ -7,17 +7,13 @@
     tools:context=".MainActivity"
     android:orientation="vertical">
 
-    <EditText
+    <android.support.v7.widget.SearchView
         android:id="@+id/query"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Search..."/>
+        >
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Search"
-        android:onClick="search"/>
+    </android.support.v7.widget.SearchView>
 
     <android.support.v7.widget.RecyclerView
         android:layout_width="match_parent"

@@ -12,4 +12,6 @@ interface MovieServiceAIDL {
 
     Bundle search(String aQuery, int pageNum);
 
+    Bundle movie(int movieID);
+
 }

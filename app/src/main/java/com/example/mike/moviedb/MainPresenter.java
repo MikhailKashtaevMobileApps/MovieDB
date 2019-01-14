@@ -31,6 +31,8 @@ public class MainPresenter {
     private Boolean connected;
     public static final String TAG = "__TAG__";
 
+
+
     private ServiceConnection mConnection = new ServiceConnection() {
 
         // Called when the connection with the service is established
@@ -49,6 +51,8 @@ public class MainPresenter {
             connected = false;
         }
     };
+    private String query;
+    private Integer pageNum;
 
     public MainPresenter(Context context) {
         Intent intent = new Intent(context, MovieService.class);
@@ -63,16 +67,24 @@ public class MainPresenter {
         return instance;
     }
 
-    public Single<List<Movie>> search(final String q, final Integer pageNum){
+    public Single<List<Movie>> search(final String q){
         if ( !connected ) return null;
 
+        query = q;
+        pageNum = 0;
+
+        return lazyLoad();
+    }
+
+    public Single<List<Movie>> lazyLoad(){
+        pageNum++;
         return Single.fromCallable(new Callable<List<Movie>>() {
-                    @Override
-                    public List<Movie> call() throws Exception {
-                        Bundle b = movieService.search(q, pageNum);
-                        return (List<Movie>) b.getSerializable("data");
-                    }
-                })
+            @Override
+            public List<Movie> call() throws Exception {
+                Bundle b = movieService.search(query, pageNum);
+                return (List<Movie>) b.getSerializable("data");
+            }
+        })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
